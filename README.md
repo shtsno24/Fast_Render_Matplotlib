@@ -1,5 +1,7 @@
 # Fast-Render using Matplotlib  
 
+![Fast-Render_1250](https://user-images.githubusercontent.com/22016935/92857881-4a470f80-f430-11ea-9f2f-661a0949b306.gif)
+
 This is an implementation of a fast drawing class using Matplotlib.  
 Currently, the following classes are implemented.  
 
