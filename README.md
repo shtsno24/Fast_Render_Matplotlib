@@ -22,4 +22,4 @@ Currently, the following classes are implemented.
 
 ## Resources
 
-Blog : 
+Blog : https://www.shtsno24.tokyo/2020/07/matplotlib.html
