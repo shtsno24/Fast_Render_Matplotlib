@@ -6,10 +6,11 @@ import time
 
 class Scatter:
 
-    def __init__(self, fig, ax, plot_area=(1000, 1000), len_points=100, show_icon=False, icon_radius=100):
+    def __init__(self, fig, ax, plot_area=(1000, 1000), len_points=100, show_icon=False, icon_radius=100, PySimpleGUI=False):
         self.fig = fig
         self.plot_area = plot_area
         self.icon_radius = icon_radius if show_icon is True else None
+        self.orientation = 0.0
 
         # axis setup
         self.pos_ax = ax
@@ -22,10 +23,11 @@ class Scatter:
             self.pos_ax.add_patch(self.agent_icon)
 
         # show figure
-        self.fig.canvas.draw()
-        self.fig.show()
+        if PySimpleGUI is False:
+            self.fig.canvas.draw()
+            self.fig.show()
 
-    def update_data(self, points, orientation=0.0):
+    def update_data(self, points):
         # draw background with white
         self.pos_ax.draw_artist(self.pos_ax.patch)
 
@@ -37,20 +39,40 @@ class Scatter:
         # plot the icon
         if self.icon_radius is not None:
             self.agent_icon.xy = self.xy[0]
-            self.agent_icon.orientation = orientation
+            self.agent_icon.orientation = self.orientation
             self.pos_ax.draw_artist(self.agent_icon)
 
         # update this graph
         self.fig.canvas.blit(self.pos_ax.bbox)
 
     def plot(self, points, orientation=0.0):
-        self.update_data(points, orientation)
+        self.orientation = orientation
+        self.update_data(points)
+        self.fig.canvas.flush_events()
+
+    def cla(self):
+        # draw background with white
+        self.pos_ax.draw_artist(self.pos_ax.patch)
+
+        # plot points
+        self.xy = [[0.0, 0.0] for x in range(len(self.xy))]
+        self.pos_points.set_offsets(self.xy)
+        self.pos_ax.draw_artist(self.pos_points)
+
+        # plot the icon
+        if self.icon_radius is not None:
+            self.agent_icon.xy = self.xy[0]
+            self.agent_icon.orientation = 0.0
+            self.pos_ax.draw_artist(self.agent_icon)
+
+        # update this graph
+        self.fig.canvas.blit(self.pos_ax.bbox)
         self.fig.canvas.flush_events()
 
 
 class Line:
 
-    def __init__(self, fig, ax, plot_area=(1000, 1000), len_points=100):
+    def __init__(self, fig, ax, plot_area=(1000, 1000), len_points=100, PySimpleGUI=False):
         self.fig = fig
         self.plot_area = plot_area
 
@@ -60,38 +82,11 @@ class Line:
         self.line_ax.set_ylim(-plot_area[1], plot_area[1])
         self.ydata = [0.0 for x in range(len_points)]
         self.line, = self.line_ax.plot(self.ydata)
+
         # show figure
-        self.fig.canvas.draw()
-        self.fig.show()
-
-    def update_data(self, points):
-        # draw background with white
-        self.line_ax.draw_artist(self.line_ax.patch)
-
-        # plot points
-        self.ydata = points
-        self.line.set_ydata(self.ydata)
-        self.line_ax.draw_artist(self.line)
-
-        # update this graph
-        self.fig.canvas.blit(self.line_ax.bbox)
-
-    def plot(self, ydata):
-        self.update_data(ydata)
-        self.fig.canvas.flush_events()
-
-
-class Line4PySimpleGUI:
-    def __init__(self, fig, ax, plot_area=(1000, 1000), len_points=100):
-        self.fig = fig
-        self.plot_area = plot_area
-
-        # axis setup
-        self.line_ax = ax
-        self.line_ax.set_xlim(0, plot_area[0])
-        self.line_ax.set_ylim(-plot_area[1], plot_area[1])
-        self.ydata = [0.0 for x in range(len_points)]
-        self.line, = self.line_ax.plot(self.ydata)
+        if PySimpleGUI is False:
+            self.fig.canvas.draw()
+            self.fig.show()
 
     def update_data(self, points):
         # draw background with white
