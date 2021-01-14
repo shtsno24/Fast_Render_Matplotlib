@@ -30,14 +30,13 @@ class Scatter:
         self.pos_ax.draw_artist(self.pos_ax.patch)
 
         # plot points
-        self.xy.append(points)
-        self.xy.pop(0)
+        self.xy = list(zip(*points))
         self.pos_points.set_offsets(self.xy)
         self.pos_ax.draw_artist(self.pos_points)
 
         # plot the icon
         if self.icon_radius is not None:
-            self.agent_icon.xy = points
+            self.agent_icon.xy = self.xy[0]
             self.agent_icon.orientation = orientation
             self.pos_ax.draw_artist(self.agent_icon)
 
@@ -70,8 +69,7 @@ class Line:
         self.line_ax.draw_artist(self.line_ax.patch)
 
         # plot points
-        self.ydata.append(points)
-        self.ydata.pop(0)
+        self.ydata = points
         self.line.set_ydata(self.ydata)
         self.line_ax.draw_artist(self.line)
 
@@ -83,8 +81,50 @@ class Line:
         self.fig.canvas.flush_events()
 
 
+class Line4PySimpleGUI:
+    def __init__(self, fig, ax, plot_area=(1000, 1000), len_points=100):
+        self.fig = fig
+        self.plot_area = plot_area
+
+        # axis setup
+        self.line_ax = ax
+        self.line_ax.set_xlim(0, plot_area[0])
+        self.line_ax.set_ylim(-plot_area[1], plot_area[1])
+        self.ydata = [0.0 for x in range(len_points)]
+        self.line, = self.line_ax.plot(self.ydata)
+
+    def update_data(self, points):
+        # draw background with white
+        self.line_ax.draw_artist(self.line_ax.patch)
+
+        # plot points
+        self.ydata = points
+        self.line.set_ydata(self.ydata)
+        self.line_ax.draw_artist(self.line)
+
+        # update this graph
+        self.fig.canvas.blit(self.line_ax.bbox)
+
+    def plot(self, ydata):
+        self.update_data(ydata)
+        self.fig.canvas.flush_events()
+
+    def cla(self):
+        # draw background with white
+        self.line_ax.draw_artist(self.line_ax.patch)
+
+        # plot points
+        self.ydata = [0.0 for x in range(len(self.ydata))]
+        self.line.set_ydata(self.ydata)
+        self.line_ax.draw_artist(self.line)
+
+        # update this graph
+        self.fig.canvas.blit(self.line_ax.bbox)
+        self.fig.canvas.flush_events()
+
+
 if __name__ == "__main__":
-    loop_times = 5000
+    loop_times = 500
     fig = plt.figure()
     pos_ax = fig.add_subplot(2, 1, 1)
     line_ax = fig.add_subplot(2, 1, 2)
@@ -92,15 +132,25 @@ if __name__ == "__main__":
     line_view = Line(fig, line_ax, plot_area=(1250, 1000), len_points=1250)
 
     input(">>")
-    sum_time = 0.0
-    for i in range(loop_times):
-        rand_array = np.random.randint(-1000, 1000, 2)
-        start = time.perf_counter_ns()
-        scatter_view.plot(rand_array)
-        line_view.plot(rand_array[1])
-        while True:
-            end = time.perf_counter_ns()
-            if ((end - start) * 1.0e-9) > 0.001:
-                break
-        sum_time += end - start
-    input("Done : " + str(loop_times / sum_time / 1.0e-9) + " [fps]")
+    try:
+        sum_time = 0.0
+        for i in range(loop_times):
+            rand_array_x = np.random.randint(-1000, 1000, 1250).tolist()
+            rand_array_y = np.random.randint(-1000, 1000, 1250).tolist()
+            _rand_array = np.random.randint(-1000, 1000, 1250)
+
+            start = time.perf_counter_ns()
+            scatter_view.plot([rand_array_x, rand_array_y])
+            line_view.plot(_rand_array)
+            while True:
+                end = time.perf_counter_ns()
+                if ((end - start) * 1.0e-9) > 0.001:
+                    break
+            sum_time += end - start
+        input("Done : " + str(loop_times / sum_time / 1.0e-9) + " [fps]")
+    except Exception as e:
+        print(e, end="\n\n")
+        import traceback
+        traceback.print_exc()
+    finally:
+        input(">>")
